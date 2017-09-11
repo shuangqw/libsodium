@@ -710,6 +710,9 @@ EGREP
 GREP
 CPP
 SED
+SODIUM_LIBRARY_MINIMAL_DEF
+MINIMAL_FALSE
+MINIMAL_TRUE
 am__fastdepCC_FALSE
 am__fastdepCC_TRUE
 CCDEPMODE
@@ -723,9 +726,6 @@ CPPFLAGS
 LDFLAGS
 CFLAGS
 CC
-SODIUM_LIBRARY_MINIMAL_DEF
-MINIMAL_FALSE
-MINIMAL_TRUE
 DLL_VERSION
 SODIUM_LIBRARY_VERSION
 SODIUM_LIBRARY_VERSION_MINOR
@@ -3284,92 +3284,6 @@ else
 fi
 
 
-if test "x$EMSCRIPTEN" != "x"; then :
-
-  enable_asm="no"
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: compiling to JavaScript - asm implementations disabled" >&5
-$as_echo "$as_me: WARNING: compiling to JavaScript - asm implementations disabled" >&2;}
-
-fi
-if test "$host_os" = "nacl" -o "$host_os" = "pnacl"; then :
-
-  enable_asm="no"
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: compiling to Native Client - asm implementations disabled" >&5
-$as_echo "$as_me: WARNING: compiling to Native Client - asm implementations disabled" >&2;}
-
-fi
-
-# Check whether --enable-pie was given.
-if test "${enable_pie+set}" = set; then :
-  enableval=$enable_pie; enable_pie=$enableval
-else
-  enable_pie="maybe"
-fi
-
-
-case $host_os in #(
-  mingw*|cygwin*|msys) :
-    enable_pie="no" ;; #(
-  *) :
-     ;;
-esac
-
-# Check whether --enable-blocking-random was given.
-if test "${enable_blocking_random+set}" = set; then :
-  enableval=$enable_blocking_random;
-  if test "x$enableval" = "xyes"; then :
-
-
-$as_echo "#define USE_BLOCKING_RANDOM 1" >>confdefs.h
-
-
-fi
-
-fi
-
-
-# Check whether --enable-minimal was given.
-if test "${enable_minimal+set}" = set; then :
-  enableval=$enable_minimal;
-  if test "x$enableval" = "xyes"; then :
-
-    enable_minimal="yes"
-    SODIUM_LIBRARY_MINIMAL_DEF="#define SODIUM_LIBRARY_MINIMAL 1"
-
-$as_echo "#define MINIMAL 1" >>confdefs.h
-
-
-else
-
-    enable_minimal="no"
-
-fi
-
-else
-
-  enable_minimal="no"
-
-fi
-
- if test x$enable_minimal = xyes; then
-  MINIMAL_TRUE=
-  MINIMAL_FALSE='#'
-else
-  MINIMAL_TRUE='#'
-  MINIMAL_FALSE=
-fi
-
-
-
-
-# Check whether --with-pthreads was given.
-if test "${with_pthreads+set}" = set; then :
-  withval=$with_pthreads;
-else
-  withval="yes"
-fi
-
-
 DEPDIR="${am__leading_dot}deps"
 
 ac_config_commands="$ac_config_commands depfiles"
@@ -4390,6 +4304,135 @@ else
 fi
 
 
+
+if test "x$EMSCRIPTEN" != "x"; then :
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -s ASSERTIONS=0" >&5
+$as_echo_n "checking whether C compiler accepts -s ASSERTIONS=0... " >&6; }
+if ${ax_cv_check_cflags___s_ASSERTIONS_0+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  ax_check_save_flags=$CFLAGS
+  CFLAGS="$CFLAGS  -s ASSERTIONS=0"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <time.h>
+int
+main ()
+{
+time_t x; int fodder = 0; if (fodder > -1000 && time(&x)) return (int) x
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ax_cv_check_cflags___s_ASSERTIONS_0=yes
+else
+  ax_cv_check_cflags___s_ASSERTIONS_0=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+  CFLAGS=$ax_check_save_flags
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags___s_ASSERTIONS_0" >&5
+$as_echo "$ax_cv_check_cflags___s_ASSERTIONS_0" >&6; }
+if test "x$ax_cv_check_cflags___s_ASSERTIONS_0" = xyes; then :
+
+    enable_asm="no"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: compiling to JavaScript - asm implementations disabled" >&5
+$as_echo "$as_me: WARNING: compiling to JavaScript - asm implementations disabled" >&2;}
+
+else
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: EMSCRIPTEN environment variable defined, but emcc doesn't appear to be used - Assuming compilation to native code" >&5
+$as_echo "$as_me: WARNING: EMSCRIPTEN environment variable defined, but emcc doesn't appear to be used - Assuming compilation to native code" >&2;}
+    CFLAGS="$CFLAGS -U__EMSCRIPTEN__"
+    unset EMSCRIPTEN
+
+fi
+
+
+fi
+if test "$host_os" = "nacl" -o "$host_os" = "pnacl"; then :
+
+  enable_asm="no"
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: compiling to Native Client - asm implementations disabled" >&5
+$as_echo "$as_me: WARNING: compiling to Native Client - asm implementations disabled" >&2;}
+
+fi
+
+# Check whether --enable-pie was given.
+if test "${enable_pie+set}" = set; then :
+  enableval=$enable_pie; enable_pie=$enableval
+else
+  enable_pie="maybe"
+fi
+
+
+case $host_os in #(
+  mingw*|cygwin*|msys) :
+    enable_pie="no" ;; #(
+  *) :
+     ;;
+esac
+
+# Check whether --enable-blocking-random was given.
+if test "${enable_blocking_random+set}" = set; then :
+  enableval=$enable_blocking_random;
+  if test "x$enableval" = "xyes"; then :
+
+
+$as_echo "#define USE_BLOCKING_RANDOM 1" >>confdefs.h
+
+
+fi
+
+fi
+
+
+# Check whether --enable-minimal was given.
+if test "${enable_minimal+set}" = set; then :
+  enableval=$enable_minimal;
+  if test "x$enableval" = "xyes"; then :
+
+    enable_minimal="yes"
+    SODIUM_LIBRARY_MINIMAL_DEF="#define SODIUM_LIBRARY_MINIMAL 1"
+
+$as_echo "#define MINIMAL 1" >>confdefs.h
+
+
+else
+
+    enable_minimal="no"
+
+fi
+
+else
+
+  enable_minimal="no"
+
+fi
+
+ if test x$enable_minimal = xyes; then
+  MINIMAL_TRUE=
+  MINIMAL_FALSE='#'
+else
+  MINIMAL_TRUE='#'
+  MINIMAL_FALSE=
+fi
+
+
+
+
+# Check whether --with-pthreads was given.
+if test "${with_pthreads+set}" = set; then :
+  withval=$with_pthreads;
+else
+  withval="yes"
+fi
+
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for a sed that does not truncate output" >&5
 $as_echo_n "checking for a sed that does not truncate output... " >&6; }
 if ${ac_cv_path_SED+:} false; then :
@@ -4458,7 +4501,6 @@ fi
 $as_echo "$ac_cv_path_SED" >&6; }
  SED="$ac_cv_path_SED"
   rm -f conftest.sed
-
 
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
@@ -18230,12 +18272,12 @@ if test -z "${AMDEP_TRUE}" && test -z "${AMDEP_FALSE}"; then
   as_fn_error $? "conditional \"AMDEP\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
-if test -z "${MINIMAL_TRUE}" && test -z "${MINIMAL_FALSE}"; then
-  as_fn_error $? "conditional \"MINIMAL\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
 if test -z "${am__fastdepCC_TRUE}" && test -z "${am__fastdepCC_FALSE}"; then
   as_fn_error $? "conditional \"am__fastdepCC\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${MINIMAL_TRUE}" && test -z "${MINIMAL_FALSE}"; then
+  as_fn_error $? "conditional \"MINIMAL\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${VALGRIND_ENABLED_TRUE}" && test -z "${VALGRIND_ENABLED_FALSE}"; then
