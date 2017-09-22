@@ -174,7 +174,8 @@ host_triplet = @host@
 
 subdir = src/libsodium
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/ax_check_catchable_segv.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/ax_check_catchable_abrt.m4 \
+	$(top_srcdir)/m4/ax_check_catchable_segv.m4 \
 	$(top_srcdir)/m4/ax_check_compile_flag.m4 \
 	$(top_srcdir)/m4/ax_check_define.m4 \
 	$(top_srcdir)/m4/ax_check_link_flag.m4 \
@@ -240,8 +241,14 @@ libavx2_la_OBJECTS = $(am_libavx2_la_OBJECTS)
 libavx2_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(libavx2_la_LDFLAGS) $(LDFLAGS) -o $@
+libavx512f_la_LIBADD =
+am_libavx512f_la_OBJECTS = crypto_pwhash/argon2/libavx512f_la-argon2-fill-block-avx512f.lo
+libavx512f_la_OBJECTS = $(am_libavx512f_la_OBJECTS)
+libavx512f_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(libavx512f_la_LDFLAGS) $(LDFLAGS) -o $@
 libsodium_la_DEPENDENCIES = libaesni.la libsse2.la libssse3.la \
-	libsse41.la libavx2.la
+	libsse41.la libavx2.la libavx512f.la
 am__libsodium_la_SOURCES_DIST =  \
 	crypto_aead/chacha20poly1305/sodium/aead_chacha20poly1305.c \
 	crypto_aead/xchacha20poly1305/sodium/aead_xchacha20poly1305.c \
@@ -298,6 +305,7 @@ am__libsodium_la_SOURCES_DIST =  \
 	crypto_secretbox/crypto_secretbox.c \
 	crypto_secretbox/crypto_secretbox_easy.c \
 	crypto_secretbox/xsalsa20poly1305/secretbox_xsalsa20poly1305.c \
+	crypto_secretstream/xchacha20poly1305/secretstream_xchacha20poly1305.c \
 	crypto_shorthash/crypto_shorthash.c \
 	crypto_shorthash/siphash24/shorthash_siphash24.c \
 	crypto_shorthash/siphash24/ref/shorthash_siphash24_ref.c \
@@ -320,7 +328,8 @@ am__libsodium_la_SOURCES_DIST =  \
 	include/sodium/private/implementations.h \
 	include/sodium/private/mutex.h \
 	include/sodium/private/sse2_64_32.h randombytes/randombytes.c \
-	sodium/core.c sodium/runtime.c sodium/utils.c sodium/version.c \
+	sodium/codecs.c sodium/core.c sodium/runtime.c sodium/utils.c \
+	sodium/version.c \
 	randombytes/salsa20/randombytes_salsa20_random.c \
 	randombytes/nativeclient/randombytes_nativeclient.c \
 	randombytes/sysrandom/randombytes_sysrandom.c \
@@ -453,6 +462,7 @@ am_libsodium_la_OBJECTS = crypto_aead/chacha20poly1305/sodium/libsodium_la-aead_
 	crypto_secretbox/libsodium_la-crypto_secretbox.lo \
 	crypto_secretbox/libsodium_la-crypto_secretbox_easy.lo \
 	crypto_secretbox/xsalsa20poly1305/libsodium_la-secretbox_xsalsa20poly1305.lo \
+	crypto_secretstream/xchacha20poly1305/libsodium_la-secretstream_xchacha20poly1305.lo \
 	crypto_shorthash/libsodium_la-crypto_shorthash.lo \
 	crypto_shorthash/siphash24/libsodium_la-shorthash_siphash24.lo \
 	crypto_shorthash/siphash24/ref/libsodium_la-shorthash_siphash24_ref.lo \
@@ -468,11 +478,12 @@ am_libsodium_la_OBJECTS = crypto_aead/chacha20poly1305/sodium/libsodium_la-aead_
 	crypto_stream/xsalsa20/libsodium_la-stream_xsalsa20.lo \
 	crypto_verify/sodium/libsodium_la-verify.lo \
 	randombytes/libsodium_la-randombytes.lo \
-	sodium/libsodium_la-core.lo sodium/libsodium_la-runtime.lo \
-	sodium/libsodium_la-utils.lo sodium/libsodium_la-version.lo \
-	$(am__objects_1) $(am__objects_2) $(am__objects_3) \
-	$(am__objects_4) $(am__objects_5) $(am__objects_6) \
-	$(am__objects_7) $(am__objects_8) $(am__objects_9)
+	sodium/libsodium_la-codecs.lo sodium/libsodium_la-core.lo \
+	sodium/libsodium_la-runtime.lo sodium/libsodium_la-utils.lo \
+	sodium/libsodium_la-version.lo $(am__objects_1) \
+	$(am__objects_2) $(am__objects_3) $(am__objects_4) \
+	$(am__objects_5) $(am__objects_6) $(am__objects_7) \
+	$(am__objects_8) $(am__objects_9)
 libsodium_la_OBJECTS = $(am_libsodium_la_OBJECTS)
 libsodium_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -555,10 +566,11 @@ am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(libaesni_la_SOURCES) $(libavx2_la_SOURCES) \
-	$(libsodium_la_SOURCES) $(libsse2_la_SOURCES) \
-	$(libsse41_la_SOURCES) $(libssse3_la_SOURCES)
+	$(libavx512f_la_SOURCES) $(libsodium_la_SOURCES) \
+	$(libsse2_la_SOURCES) $(libsse41_la_SOURCES) \
+	$(libssse3_la_SOURCES)
 DIST_SOURCES = $(libaesni_la_SOURCES) $(libavx2_la_SOURCES) \
-	$(am__libsodium_la_SOURCES_DIST) \
+	$(libavx512f_la_SOURCES) $(am__libsodium_la_SOURCES_DIST) \
 	$(am__libsse2_la_SOURCES_DIST) $(libsse41_la_SOURCES) \
 	$(libssse3_la_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
@@ -650,6 +662,7 @@ CFLAGS = @CFLAGS@
 CFLAGS_AESNI = @CFLAGS_AESNI@
 CFLAGS_AVX = @CFLAGS_AVX@
 CFLAGS_AVX2 = @CFLAGS_AVX2@
+CFLAGS_AVX512F = @CFLAGS_AVX512F@
 CFLAGS_MMX = @CFLAGS_MMX@
 CFLAGS_PCLMUL = @CFLAGS_PCLMUL@
 CFLAGS_SSE2 = @CFLAGS_SSE2@
@@ -847,6 +860,7 @@ libsodium_la_SOURCES =  \
 	crypto_secretbox/crypto_secretbox.c \
 	crypto_secretbox/crypto_secretbox_easy.c \
 	crypto_secretbox/xsalsa20poly1305/secretbox_xsalsa20poly1305.c \
+	crypto_secretstream/xchacha20poly1305/secretstream_xchacha20poly1305.c \
 	crypto_shorthash/crypto_shorthash.c \
 	crypto_shorthash/siphash24/shorthash_siphash24.c \
 	crypto_shorthash/siphash24/ref/shorthash_siphash24_ref.c \
@@ -869,10 +883,11 @@ libsodium_la_SOURCES =  \
 	include/sodium/private/implementations.h \
 	include/sodium/private/mutex.h \
 	include/sodium/private/sse2_64_32.h randombytes/randombytes.c \
-	sodium/core.c sodium/runtime.c sodium/utils.c sodium/version.c \
-	$(am__append_1) $(am__append_2) $(am__append_3) \
-	$(am__append_4) $(am__append_5) $(am__append_6) \
-	$(am__append_7) $(am__append_8) $(am__append_9)
+	sodium/codecs.c sodium/core.c sodium/runtime.c sodium/utils.c \
+	sodium/version.c $(am__append_1) $(am__append_2) \
+	$(am__append_3) $(am__append_4) $(am__append_5) \
+	$(am__append_6) $(am__append_7) $(am__append_8) \
+	$(am__append_9)
 noinst_HEADERS = \
 	crypto_scalarmult/curve25519/sandy2x/consts.S \
 	crypto_scalarmult/curve25519/sandy2x/fe51_mul.S \
@@ -894,8 +909,8 @@ libsodium_la_CPPFLAGS = \
 SUBDIRS = \
 	include
 
-libsodium_la_LIBADD = libaesni.la libsse2.la libssse3.la libsse41.la libavx2.la
-noinst_LTLIBRARIES = libaesni.la libsse2.la libssse3.la libsse41.la libavx2.la
+libsodium_la_LIBADD = libaesni.la libsse2.la libssse3.la libsse41.la libavx2.la libavx512f.la
+noinst_LTLIBRARIES = libaesni.la libsse2.la libssse3.la libsse41.la libavx2.la libavx512f.la
 libaesni_la_LDFLAGS = $(libsodium_la_LDFLAGS)
 libaesni_la_CPPFLAGS = $(libsodium_la_CPPFLAGS) \
 	@CFLAGS_SSE2@ @CFLAGS_SSSE3@ @CFLAGS_AESNI@ @CFLAGS_PCLMUL@
@@ -951,6 +966,14 @@ libavx2_la_SOURCES = \
 	crypto_stream/salsa20/xmm6int/u1.h \
 	crypto_stream/salsa20/xmm6int/u4.h \
 	crypto_stream/salsa20/xmm6int/u8.h
+
+libavx512f_la_LDFLAGS = $(libsodium_la_LDFLAGS)
+libavx512f_la_CPPFLAGS = $(libsodium_la_CPPFLAGS) \
+	@CFLAGS_SSE2@ @CFLAGS_SSSE3@ @CFLAGS_SSE41@ @CFLAGS_AVX@ @CFLAGS_AVX2@ @CFLAGS_AVX512F@
+
+libavx512f_la_SOURCES = \
+	crypto_pwhash/argon2/argon2-fill-block-avx512f.c \
+	crypto_pwhash/argon2/blamka-round-avx512f.h
 
 all: all-recursive
 
@@ -1082,6 +1105,12 @@ crypto_stream/salsa20/xmm6int/libavx2_la-salsa20_xmm6int-avx2.lo:  \
 
 libavx2.la: $(libavx2_la_OBJECTS) $(libavx2_la_DEPENDENCIES) $(EXTRA_libavx2_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(libavx2_la_LINK)  $(libavx2_la_OBJECTS) $(libavx2_la_LIBADD) $(LIBS)
+crypto_pwhash/argon2/libavx512f_la-argon2-fill-block-avx512f.lo:  \
+	crypto_pwhash/argon2/$(am__dirstamp) \
+	crypto_pwhash/argon2/$(DEPDIR)/$(am__dirstamp)
+
+libavx512f.la: $(libavx512f_la_OBJECTS) $(libavx512f_la_DEPENDENCIES) $(EXTRA_libavx512f_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(libavx512f_la_LINK)  $(libavx512f_la_OBJECTS) $(libavx512f_la_LIBADD) $(LIBS)
 crypto_aead/chacha20poly1305/sodium/$(am__dirstamp):
 	@$(MKDIR_P) crypto_aead/chacha20poly1305/sodium
 	@: > crypto_aead/chacha20poly1305/sodium/$(am__dirstamp)
@@ -1395,6 +1424,15 @@ crypto_secretbox/xsalsa20poly1305/$(DEPDIR)/$(am__dirstamp):
 crypto_secretbox/xsalsa20poly1305/libsodium_la-secretbox_xsalsa20poly1305.lo:  \
 	crypto_secretbox/xsalsa20poly1305/$(am__dirstamp) \
 	crypto_secretbox/xsalsa20poly1305/$(DEPDIR)/$(am__dirstamp)
+crypto_secretstream/xchacha20poly1305/$(am__dirstamp):
+	@$(MKDIR_P) crypto_secretstream/xchacha20poly1305
+	@: > crypto_secretstream/xchacha20poly1305/$(am__dirstamp)
+crypto_secretstream/xchacha20poly1305/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) crypto_secretstream/xchacha20poly1305/$(DEPDIR)
+	@: > crypto_secretstream/xchacha20poly1305/$(DEPDIR)/$(am__dirstamp)
+crypto_secretstream/xchacha20poly1305/libsodium_la-secretstream_xchacha20poly1305.lo:  \
+	crypto_secretstream/xchacha20poly1305/$(am__dirstamp) \
+	crypto_secretstream/xchacha20poly1305/$(DEPDIR)/$(am__dirstamp)
 crypto_shorthash/$(am__dirstamp):
 	@$(MKDIR_P) crypto_shorthash
 	@: > crypto_shorthash/$(am__dirstamp)
@@ -1522,6 +1560,8 @@ sodium/$(am__dirstamp):
 sodium/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) sodium/$(DEPDIR)
 	@: > sodium/$(DEPDIR)/$(am__dirstamp)
+sodium/libsodium_la-codecs.lo: sodium/$(am__dirstamp) \
+	sodium/$(DEPDIR)/$(am__dirstamp)
 sodium/libsodium_la-core.lo: sodium/$(am__dirstamp) \
 	sodium/$(DEPDIR)/$(am__dirstamp)
 sodium/libsodium_la-runtime.lo: sodium/$(am__dirstamp) \
@@ -1883,6 +1923,8 @@ mostlyclean-compile:
 	-rm -f crypto_secretbox/xchacha20poly1305/*.lo
 	-rm -f crypto_secretbox/xsalsa20poly1305/*.$(OBJEXT)
 	-rm -f crypto_secretbox/xsalsa20poly1305/*.lo
+	-rm -f crypto_secretstream/xchacha20poly1305/*.$(OBJEXT)
+	-rm -f crypto_secretstream/xchacha20poly1305/*.lo
 	-rm -f crypto_shorthash/*.$(OBJEXT)
 	-rm -f crypto_shorthash/*.lo
 	-rm -f crypto_shorthash/siphash24/*.$(OBJEXT)
@@ -1983,6 +2025,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@crypto_onetimeauth/poly1305/sse2/$(DEPDIR)/libsse2_la-poly1305_sse2.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@crypto_pwhash/$(DEPDIR)/libsodium_la-crypto_pwhash.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@crypto_pwhash/argon2/$(DEPDIR)/libavx2_la-argon2-fill-block-avx2.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@crypto_pwhash/argon2/$(DEPDIR)/libavx512f_la-argon2-fill-block-avx512f.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@crypto_pwhash/argon2/$(DEPDIR)/libsodium_la-argon2-core.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@crypto_pwhash/argon2/$(DEPDIR)/libsodium_la-argon2-encoding.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@crypto_pwhash/argon2/$(DEPDIR)/libsodium_la-argon2-fill-block-ref.Plo@am__quote@
@@ -2009,6 +2052,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@crypto_secretbox/$(DEPDIR)/libsodium_la-crypto_secretbox_easy.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@crypto_secretbox/xchacha20poly1305/$(DEPDIR)/libsodium_la-secretbox_xchacha20poly1305.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@crypto_secretbox/xsalsa20poly1305/$(DEPDIR)/libsodium_la-secretbox_xsalsa20poly1305.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@crypto_secretstream/xchacha20poly1305/$(DEPDIR)/libsodium_la-secretstream_xchacha20poly1305.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@crypto_shorthash/$(DEPDIR)/libsodium_la-crypto_shorthash.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@crypto_shorthash/siphash24/$(DEPDIR)/libsodium_la-shorthash_siphash24.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@crypto_shorthash/siphash24/$(DEPDIR)/libsodium_la-shorthash_siphashx24.Plo@am__quote@
@@ -2049,6 +2093,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@randombytes/nativeclient/$(DEPDIR)/libsodium_la-randombytes_nativeclient.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@randombytes/salsa20/$(DEPDIR)/libsodium_la-randombytes_salsa20_random.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@randombytes/sysrandom/$(DEPDIR)/libsodium_la-randombytes_sysrandom.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@sodium/$(DEPDIR)/libsodium_la-codecs.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@sodium/$(DEPDIR)/libsodium_la-core.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@sodium/$(DEPDIR)/libsodium_la-runtime.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@sodium/$(DEPDIR)/libsodium_la-utils.Plo@am__quote@
@@ -2150,6 +2195,13 @@ crypto_stream/salsa20/xmm6int/libavx2_la-salsa20_xmm6int-avx2.lo: crypto_stream/
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='crypto_stream/salsa20/xmm6int/salsa20_xmm6int-avx2.c' object='crypto_stream/salsa20/xmm6int/libavx2_la-salsa20_xmm6int-avx2.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libavx2_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o crypto_stream/salsa20/xmm6int/libavx2_la-salsa20_xmm6int-avx2.lo `test -f 'crypto_stream/salsa20/xmm6int/salsa20_xmm6int-avx2.c' || echo '$(srcdir)/'`crypto_stream/salsa20/xmm6int/salsa20_xmm6int-avx2.c
+
+crypto_pwhash/argon2/libavx512f_la-argon2-fill-block-avx512f.lo: crypto_pwhash/argon2/argon2-fill-block-avx512f.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libavx512f_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT crypto_pwhash/argon2/libavx512f_la-argon2-fill-block-avx512f.lo -MD -MP -MF crypto_pwhash/argon2/$(DEPDIR)/libavx512f_la-argon2-fill-block-avx512f.Tpo -c -o crypto_pwhash/argon2/libavx512f_la-argon2-fill-block-avx512f.lo `test -f 'crypto_pwhash/argon2/argon2-fill-block-avx512f.c' || echo '$(srcdir)/'`crypto_pwhash/argon2/argon2-fill-block-avx512f.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) crypto_pwhash/argon2/$(DEPDIR)/libavx512f_la-argon2-fill-block-avx512f.Tpo crypto_pwhash/argon2/$(DEPDIR)/libavx512f_la-argon2-fill-block-avx512f.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='crypto_pwhash/argon2/argon2-fill-block-avx512f.c' object='crypto_pwhash/argon2/libavx512f_la-argon2-fill-block-avx512f.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libavx512f_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o crypto_pwhash/argon2/libavx512f_la-argon2-fill-block-avx512f.lo `test -f 'crypto_pwhash/argon2/argon2-fill-block-avx512f.c' || echo '$(srcdir)/'`crypto_pwhash/argon2/argon2-fill-block-avx512f.c
 
 crypto_aead/chacha20poly1305/sodium/libsodium_la-aead_chacha20poly1305.lo: crypto_aead/chacha20poly1305/sodium/aead_chacha20poly1305.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsodium_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT crypto_aead/chacha20poly1305/sodium/libsodium_la-aead_chacha20poly1305.lo -MD -MP -MF crypto_aead/chacha20poly1305/sodium/$(DEPDIR)/libsodium_la-aead_chacha20poly1305.Tpo -c -o crypto_aead/chacha20poly1305/sodium/libsodium_la-aead_chacha20poly1305.lo `test -f 'crypto_aead/chacha20poly1305/sodium/aead_chacha20poly1305.c' || echo '$(srcdir)/'`crypto_aead/chacha20poly1305/sodium/aead_chacha20poly1305.c
@@ -2459,6 +2511,13 @@ crypto_secretbox/xsalsa20poly1305/libsodium_la-secretbox_xsalsa20poly1305.lo: cr
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsodium_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o crypto_secretbox/xsalsa20poly1305/libsodium_la-secretbox_xsalsa20poly1305.lo `test -f 'crypto_secretbox/xsalsa20poly1305/secretbox_xsalsa20poly1305.c' || echo '$(srcdir)/'`crypto_secretbox/xsalsa20poly1305/secretbox_xsalsa20poly1305.c
 
+crypto_secretstream/xchacha20poly1305/libsodium_la-secretstream_xchacha20poly1305.lo: crypto_secretstream/xchacha20poly1305/secretstream_xchacha20poly1305.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsodium_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT crypto_secretstream/xchacha20poly1305/libsodium_la-secretstream_xchacha20poly1305.lo -MD -MP -MF crypto_secretstream/xchacha20poly1305/$(DEPDIR)/libsodium_la-secretstream_xchacha20poly1305.Tpo -c -o crypto_secretstream/xchacha20poly1305/libsodium_la-secretstream_xchacha20poly1305.lo `test -f 'crypto_secretstream/xchacha20poly1305/secretstream_xchacha20poly1305.c' || echo '$(srcdir)/'`crypto_secretstream/xchacha20poly1305/secretstream_xchacha20poly1305.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) crypto_secretstream/xchacha20poly1305/$(DEPDIR)/libsodium_la-secretstream_xchacha20poly1305.Tpo crypto_secretstream/xchacha20poly1305/$(DEPDIR)/libsodium_la-secretstream_xchacha20poly1305.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='crypto_secretstream/xchacha20poly1305/secretstream_xchacha20poly1305.c' object='crypto_secretstream/xchacha20poly1305/libsodium_la-secretstream_xchacha20poly1305.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsodium_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o crypto_secretstream/xchacha20poly1305/libsodium_la-secretstream_xchacha20poly1305.lo `test -f 'crypto_secretstream/xchacha20poly1305/secretstream_xchacha20poly1305.c' || echo '$(srcdir)/'`crypto_secretstream/xchacha20poly1305/secretstream_xchacha20poly1305.c
+
 crypto_shorthash/libsodium_la-crypto_shorthash.lo: crypto_shorthash/crypto_shorthash.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsodium_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT crypto_shorthash/libsodium_la-crypto_shorthash.lo -MD -MP -MF crypto_shorthash/$(DEPDIR)/libsodium_la-crypto_shorthash.Tpo -c -o crypto_shorthash/libsodium_la-crypto_shorthash.lo `test -f 'crypto_shorthash/crypto_shorthash.c' || echo '$(srcdir)/'`crypto_shorthash/crypto_shorthash.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) crypto_shorthash/$(DEPDIR)/libsodium_la-crypto_shorthash.Tpo crypto_shorthash/$(DEPDIR)/libsodium_la-crypto_shorthash.Plo
@@ -2563,6 +2622,13 @@ randombytes/libsodium_la-randombytes.lo: randombytes/randombytes.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='randombytes/randombytes.c' object='randombytes/libsodium_la-randombytes.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsodium_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o randombytes/libsodium_la-randombytes.lo `test -f 'randombytes/randombytes.c' || echo '$(srcdir)/'`randombytes/randombytes.c
+
+sodium/libsodium_la-codecs.lo: sodium/codecs.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsodium_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sodium/libsodium_la-codecs.lo -MD -MP -MF sodium/$(DEPDIR)/libsodium_la-codecs.Tpo -c -o sodium/libsodium_la-codecs.lo `test -f 'sodium/codecs.c' || echo '$(srcdir)/'`sodium/codecs.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) sodium/$(DEPDIR)/libsodium_la-codecs.Tpo sodium/$(DEPDIR)/libsodium_la-codecs.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sodium/codecs.c' object='sodium/libsodium_la-codecs.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsodium_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o sodium/libsodium_la-codecs.lo `test -f 'sodium/codecs.c' || echo '$(srcdir)/'`sodium/codecs.c
 
 sodium/libsodium_la-core.lo: sodium/core.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsodium_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT sodium/libsodium_la-core.lo -MD -MP -MF sodium/$(DEPDIR)/libsodium_la-core.Tpo -c -o sodium/libsodium_la-core.lo `test -f 'sodium/core.c' || echo '$(srcdir)/'`sodium/core.c
@@ -2920,6 +2986,7 @@ clean-libtool:
 	-rm -rf crypto_secretbox/.libs crypto_secretbox/_libs
 	-rm -rf crypto_secretbox/xchacha20poly1305/.libs crypto_secretbox/xchacha20poly1305/_libs
 	-rm -rf crypto_secretbox/xsalsa20poly1305/.libs crypto_secretbox/xsalsa20poly1305/_libs
+	-rm -rf crypto_secretstream/xchacha20poly1305/.libs crypto_secretstream/xchacha20poly1305/_libs
 	-rm -rf crypto_shorthash/.libs crypto_shorthash/_libs
 	-rm -rf crypto_shorthash/siphash24/.libs crypto_shorthash/siphash24/_libs
 	-rm -rf crypto_shorthash/siphash24/ref/.libs crypto_shorthash/siphash24/ref/_libs
@@ -3245,6 +3312,8 @@ distclean-generic:
 	-rm -f crypto_secretbox/xchacha20poly1305/$(am__dirstamp)
 	-rm -f crypto_secretbox/xsalsa20poly1305/$(DEPDIR)/$(am__dirstamp)
 	-rm -f crypto_secretbox/xsalsa20poly1305/$(am__dirstamp)
+	-rm -f crypto_secretstream/xchacha20poly1305/$(DEPDIR)/$(am__dirstamp)
+	-rm -f crypto_secretstream/xchacha20poly1305/$(am__dirstamp)
 	-rm -f crypto_shorthash/$(DEPDIR)/$(am__dirstamp)
 	-rm -f crypto_shorthash/$(am__dirstamp)
 	-rm -f crypto_shorthash/siphash24/$(DEPDIR)/$(am__dirstamp)
@@ -3311,7 +3380,7 @@ clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
 	clean-noinstLTLIBRARIES mostlyclean-am
 
 distclean: distclean-recursive
-	-rm -rf crypto_aead/aes256gcm/aesni/$(DEPDIR) crypto_aead/chacha20poly1305/sodium/$(DEPDIR) crypto_aead/xchacha20poly1305/sodium/$(DEPDIR) crypto_auth/$(DEPDIR) crypto_auth/hmacsha256/$(DEPDIR) crypto_auth/hmacsha512/$(DEPDIR) crypto_auth/hmacsha512256/$(DEPDIR) crypto_box/$(DEPDIR) crypto_box/curve25519xchacha20poly1305/$(DEPDIR) crypto_box/curve25519xsalsa20poly1305/$(DEPDIR) crypto_core/curve25519/ref10/$(DEPDIR) crypto_core/hchacha20/$(DEPDIR) crypto_core/hsalsa20/$(DEPDIR) crypto_core/hsalsa20/ref2/$(DEPDIR) crypto_core/salsa/ref/$(DEPDIR) crypto_generichash/$(DEPDIR) crypto_generichash/blake2b/$(DEPDIR) crypto_generichash/blake2b/ref/$(DEPDIR) crypto_hash/$(DEPDIR) crypto_hash/sha256/$(DEPDIR) crypto_hash/sha256/cp/$(DEPDIR) crypto_hash/sha512/$(DEPDIR) crypto_hash/sha512/cp/$(DEPDIR) crypto_kdf/$(DEPDIR) crypto_kdf/blake2b/$(DEPDIR) crypto_kx/$(DEPDIR) crypto_onetimeauth/$(DEPDIR) crypto_onetimeauth/poly1305/$(DEPDIR) crypto_onetimeauth/poly1305/donna/$(DEPDIR) crypto_onetimeauth/poly1305/sse2/$(DEPDIR) crypto_pwhash/$(DEPDIR) crypto_pwhash/argon2/$(DEPDIR) crypto_pwhash/scryptsalsa208sha256/$(DEPDIR) crypto_pwhash/scryptsalsa208sha256/nosse/$(DEPDIR) crypto_pwhash/scryptsalsa208sha256/sse/$(DEPDIR) crypto_scalarmult/$(DEPDIR) crypto_scalarmult/curve25519/$(DEPDIR) crypto_scalarmult/curve25519/donna_c64/$(DEPDIR) crypto_scalarmult/curve25519/ref10/$(DEPDIR) crypto_scalarmult/curve25519/sandy2x/$(DEPDIR) crypto_secretbox/$(DEPDIR) crypto_secretbox/xchacha20poly1305/$(DEPDIR) crypto_secretbox/xsalsa20poly1305/$(DEPDIR) crypto_shorthash/$(DEPDIR) crypto_shorthash/siphash24/$(DEPDIR) crypto_shorthash/siphash24/ref/$(DEPDIR) crypto_sign/$(DEPDIR) crypto_sign/ed25519/$(DEPDIR) crypto_sign/ed25519/ref10/$(DEPDIR) crypto_stream/$(DEPDIR) crypto_stream/aes128ctr/$(DEPDIR) crypto_stream/aes128ctr/nacl/$(DEPDIR) crypto_stream/chacha20/$(DEPDIR) crypto_stream/chacha20/dolbeau/$(DEPDIR) crypto_stream/chacha20/ref/$(DEPDIR) crypto_stream/salsa20/$(DEPDIR) crypto_stream/salsa20/ref/$(DEPDIR) crypto_stream/salsa20/xmm6/$(DEPDIR) crypto_stream/salsa20/xmm6int/$(DEPDIR) crypto_stream/salsa2012/$(DEPDIR) crypto_stream/salsa2012/ref/$(DEPDIR) crypto_stream/salsa208/$(DEPDIR) crypto_stream/salsa208/ref/$(DEPDIR) crypto_stream/xchacha20/$(DEPDIR) crypto_stream/xsalsa20/$(DEPDIR) crypto_verify/sodium/$(DEPDIR) randombytes/$(DEPDIR) randombytes/nativeclient/$(DEPDIR) randombytes/salsa20/$(DEPDIR) randombytes/sysrandom/$(DEPDIR) sodium/$(DEPDIR)
+	-rm -rf crypto_aead/aes256gcm/aesni/$(DEPDIR) crypto_aead/chacha20poly1305/sodium/$(DEPDIR) crypto_aead/xchacha20poly1305/sodium/$(DEPDIR) crypto_auth/$(DEPDIR) crypto_auth/hmacsha256/$(DEPDIR) crypto_auth/hmacsha512/$(DEPDIR) crypto_auth/hmacsha512256/$(DEPDIR) crypto_box/$(DEPDIR) crypto_box/curve25519xchacha20poly1305/$(DEPDIR) crypto_box/curve25519xsalsa20poly1305/$(DEPDIR) crypto_core/curve25519/ref10/$(DEPDIR) crypto_core/hchacha20/$(DEPDIR) crypto_core/hsalsa20/$(DEPDIR) crypto_core/hsalsa20/ref2/$(DEPDIR) crypto_core/salsa/ref/$(DEPDIR) crypto_generichash/$(DEPDIR) crypto_generichash/blake2b/$(DEPDIR) crypto_generichash/blake2b/ref/$(DEPDIR) crypto_hash/$(DEPDIR) crypto_hash/sha256/$(DEPDIR) crypto_hash/sha256/cp/$(DEPDIR) crypto_hash/sha512/$(DEPDIR) crypto_hash/sha512/cp/$(DEPDIR) crypto_kdf/$(DEPDIR) crypto_kdf/blake2b/$(DEPDIR) crypto_kx/$(DEPDIR) crypto_onetimeauth/$(DEPDIR) crypto_onetimeauth/poly1305/$(DEPDIR) crypto_onetimeauth/poly1305/donna/$(DEPDIR) crypto_onetimeauth/poly1305/sse2/$(DEPDIR) crypto_pwhash/$(DEPDIR) crypto_pwhash/argon2/$(DEPDIR) crypto_pwhash/scryptsalsa208sha256/$(DEPDIR) crypto_pwhash/scryptsalsa208sha256/nosse/$(DEPDIR) crypto_pwhash/scryptsalsa208sha256/sse/$(DEPDIR) crypto_scalarmult/$(DEPDIR) crypto_scalarmult/curve25519/$(DEPDIR) crypto_scalarmult/curve25519/donna_c64/$(DEPDIR) crypto_scalarmult/curve25519/ref10/$(DEPDIR) crypto_scalarmult/curve25519/sandy2x/$(DEPDIR) crypto_secretbox/$(DEPDIR) crypto_secretbox/xchacha20poly1305/$(DEPDIR) crypto_secretbox/xsalsa20poly1305/$(DEPDIR) crypto_secretstream/xchacha20poly1305/$(DEPDIR) crypto_shorthash/$(DEPDIR) crypto_shorthash/siphash24/$(DEPDIR) crypto_shorthash/siphash24/ref/$(DEPDIR) crypto_sign/$(DEPDIR) crypto_sign/ed25519/$(DEPDIR) crypto_sign/ed25519/ref10/$(DEPDIR) crypto_stream/$(DEPDIR) crypto_stream/aes128ctr/$(DEPDIR) crypto_stream/aes128ctr/nacl/$(DEPDIR) crypto_stream/chacha20/$(DEPDIR) crypto_stream/chacha20/dolbeau/$(DEPDIR) crypto_stream/chacha20/ref/$(DEPDIR) crypto_stream/salsa20/$(DEPDIR) crypto_stream/salsa20/ref/$(DEPDIR) crypto_stream/salsa20/xmm6/$(DEPDIR) crypto_stream/salsa20/xmm6int/$(DEPDIR) crypto_stream/salsa2012/$(DEPDIR) crypto_stream/salsa2012/ref/$(DEPDIR) crypto_stream/salsa208/$(DEPDIR) crypto_stream/salsa208/ref/$(DEPDIR) crypto_stream/xchacha20/$(DEPDIR) crypto_stream/xsalsa20/$(DEPDIR) crypto_verify/sodium/$(DEPDIR) randombytes/$(DEPDIR) randombytes/nativeclient/$(DEPDIR) randombytes/salsa20/$(DEPDIR) randombytes/sysrandom/$(DEPDIR) sodium/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -3357,7 +3426,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-recursive
-	-rm -rf crypto_aead/aes256gcm/aesni/$(DEPDIR) crypto_aead/chacha20poly1305/sodium/$(DEPDIR) crypto_aead/xchacha20poly1305/sodium/$(DEPDIR) crypto_auth/$(DEPDIR) crypto_auth/hmacsha256/$(DEPDIR) crypto_auth/hmacsha512/$(DEPDIR) crypto_auth/hmacsha512256/$(DEPDIR) crypto_box/$(DEPDIR) crypto_box/curve25519xchacha20poly1305/$(DEPDIR) crypto_box/curve25519xsalsa20poly1305/$(DEPDIR) crypto_core/curve25519/ref10/$(DEPDIR) crypto_core/hchacha20/$(DEPDIR) crypto_core/hsalsa20/$(DEPDIR) crypto_core/hsalsa20/ref2/$(DEPDIR) crypto_core/salsa/ref/$(DEPDIR) crypto_generichash/$(DEPDIR) crypto_generichash/blake2b/$(DEPDIR) crypto_generichash/blake2b/ref/$(DEPDIR) crypto_hash/$(DEPDIR) crypto_hash/sha256/$(DEPDIR) crypto_hash/sha256/cp/$(DEPDIR) crypto_hash/sha512/$(DEPDIR) crypto_hash/sha512/cp/$(DEPDIR) crypto_kdf/$(DEPDIR) crypto_kdf/blake2b/$(DEPDIR) crypto_kx/$(DEPDIR) crypto_onetimeauth/$(DEPDIR) crypto_onetimeauth/poly1305/$(DEPDIR) crypto_onetimeauth/poly1305/donna/$(DEPDIR) crypto_onetimeauth/poly1305/sse2/$(DEPDIR) crypto_pwhash/$(DEPDIR) crypto_pwhash/argon2/$(DEPDIR) crypto_pwhash/scryptsalsa208sha256/$(DEPDIR) crypto_pwhash/scryptsalsa208sha256/nosse/$(DEPDIR) crypto_pwhash/scryptsalsa208sha256/sse/$(DEPDIR) crypto_scalarmult/$(DEPDIR) crypto_scalarmult/curve25519/$(DEPDIR) crypto_scalarmult/curve25519/donna_c64/$(DEPDIR) crypto_scalarmult/curve25519/ref10/$(DEPDIR) crypto_scalarmult/curve25519/sandy2x/$(DEPDIR) crypto_secretbox/$(DEPDIR) crypto_secretbox/xchacha20poly1305/$(DEPDIR) crypto_secretbox/xsalsa20poly1305/$(DEPDIR) crypto_shorthash/$(DEPDIR) crypto_shorthash/siphash24/$(DEPDIR) crypto_shorthash/siphash24/ref/$(DEPDIR) crypto_sign/$(DEPDIR) crypto_sign/ed25519/$(DEPDIR) crypto_sign/ed25519/ref10/$(DEPDIR) crypto_stream/$(DEPDIR) crypto_stream/aes128ctr/$(DEPDIR) crypto_stream/aes128ctr/nacl/$(DEPDIR) crypto_stream/chacha20/$(DEPDIR) crypto_stream/chacha20/dolbeau/$(DEPDIR) crypto_stream/chacha20/ref/$(DEPDIR) crypto_stream/salsa20/$(DEPDIR) crypto_stream/salsa20/ref/$(DEPDIR) crypto_stream/salsa20/xmm6/$(DEPDIR) crypto_stream/salsa20/xmm6int/$(DEPDIR) crypto_stream/salsa2012/$(DEPDIR) crypto_stream/salsa2012/ref/$(DEPDIR) crypto_stream/salsa208/$(DEPDIR) crypto_stream/salsa208/ref/$(DEPDIR) crypto_stream/xchacha20/$(DEPDIR) crypto_stream/xsalsa20/$(DEPDIR) crypto_verify/sodium/$(DEPDIR) randombytes/$(DEPDIR) randombytes/nativeclient/$(DEPDIR) randombytes/salsa20/$(DEPDIR) randombytes/sysrandom/$(DEPDIR) sodium/$(DEPDIR)
+	-rm -rf crypto_aead/aes256gcm/aesni/$(DEPDIR) crypto_aead/chacha20poly1305/sodium/$(DEPDIR) crypto_aead/xchacha20poly1305/sodium/$(DEPDIR) crypto_auth/$(DEPDIR) crypto_auth/hmacsha256/$(DEPDIR) crypto_auth/hmacsha512/$(DEPDIR) crypto_auth/hmacsha512256/$(DEPDIR) crypto_box/$(DEPDIR) crypto_box/curve25519xchacha20poly1305/$(DEPDIR) crypto_box/curve25519xsalsa20poly1305/$(DEPDIR) crypto_core/curve25519/ref10/$(DEPDIR) crypto_core/hchacha20/$(DEPDIR) crypto_core/hsalsa20/$(DEPDIR) crypto_core/hsalsa20/ref2/$(DEPDIR) crypto_core/salsa/ref/$(DEPDIR) crypto_generichash/$(DEPDIR) crypto_generichash/blake2b/$(DEPDIR) crypto_generichash/blake2b/ref/$(DEPDIR) crypto_hash/$(DEPDIR) crypto_hash/sha256/$(DEPDIR) crypto_hash/sha256/cp/$(DEPDIR) crypto_hash/sha512/$(DEPDIR) crypto_hash/sha512/cp/$(DEPDIR) crypto_kdf/$(DEPDIR) crypto_kdf/blake2b/$(DEPDIR) crypto_kx/$(DEPDIR) crypto_onetimeauth/$(DEPDIR) crypto_onetimeauth/poly1305/$(DEPDIR) crypto_onetimeauth/poly1305/donna/$(DEPDIR) crypto_onetimeauth/poly1305/sse2/$(DEPDIR) crypto_pwhash/$(DEPDIR) crypto_pwhash/argon2/$(DEPDIR) crypto_pwhash/scryptsalsa208sha256/$(DEPDIR) crypto_pwhash/scryptsalsa208sha256/nosse/$(DEPDIR) crypto_pwhash/scryptsalsa208sha256/sse/$(DEPDIR) crypto_scalarmult/$(DEPDIR) crypto_scalarmult/curve25519/$(DEPDIR) crypto_scalarmult/curve25519/donna_c64/$(DEPDIR) crypto_scalarmult/curve25519/ref10/$(DEPDIR) crypto_scalarmult/curve25519/sandy2x/$(DEPDIR) crypto_secretbox/$(DEPDIR) crypto_secretbox/xchacha20poly1305/$(DEPDIR) crypto_secretbox/xsalsa20poly1305/$(DEPDIR) crypto_secretstream/xchacha20poly1305/$(DEPDIR) crypto_shorthash/$(DEPDIR) crypto_shorthash/siphash24/$(DEPDIR) crypto_shorthash/siphash24/ref/$(DEPDIR) crypto_sign/$(DEPDIR) crypto_sign/ed25519/$(DEPDIR) crypto_sign/ed25519/ref10/$(DEPDIR) crypto_stream/$(DEPDIR) crypto_stream/aes128ctr/$(DEPDIR) crypto_stream/aes128ctr/nacl/$(DEPDIR) crypto_stream/chacha20/$(DEPDIR) crypto_stream/chacha20/dolbeau/$(DEPDIR) crypto_stream/chacha20/ref/$(DEPDIR) crypto_stream/salsa20/$(DEPDIR) crypto_stream/salsa20/ref/$(DEPDIR) crypto_stream/salsa20/xmm6/$(DEPDIR) crypto_stream/salsa20/xmm6int/$(DEPDIR) crypto_stream/salsa2012/$(DEPDIR) crypto_stream/salsa2012/ref/$(DEPDIR) crypto_stream/salsa208/$(DEPDIR) crypto_stream/salsa208/ref/$(DEPDIR) crypto_stream/xchacha20/$(DEPDIR) crypto_stream/xsalsa20/$(DEPDIR) crypto_verify/sodium/$(DEPDIR) randombytes/$(DEPDIR) randombytes/nativeclient/$(DEPDIR) randombytes/salsa20/$(DEPDIR) randombytes/sysrandom/$(DEPDIR) sodium/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

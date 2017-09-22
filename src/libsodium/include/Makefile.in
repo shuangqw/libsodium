@@ -93,7 +93,8 @@ host_triplet = @host@
 
 subdir = src/libsodium/include
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/ax_check_catchable_segv.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/ax_check_catchable_abrt.m4 \
+	$(top_srcdir)/m4/ax_check_catchable_segv.m4 \
 	$(top_srcdir)/m4/ax_check_compile_flag.m4 \
 	$(top_srcdir)/m4/ax_check_define.m4 \
 	$(top_srcdir)/m4/ax_check_link_flag.m4 \
@@ -153,6 +154,7 @@ am__nobase_include_HEADERS_DIST = sodium.h sodium/core.h \
 	sodium/crypto_secretbox.h \
 	sodium/crypto_secretbox_xchacha20poly1305.h \
 	sodium/crypto_secretbox_xsalsa20poly1305.h \
+	sodium/crypto_secretstream_xchacha20poly1305.h \
 	sodium/crypto_shorthash.h sodium/crypto_shorthash_siphash24.h \
 	sodium/crypto_sign.h sodium/crypto_sign_ed25519.h \
 	sodium/crypto_sign_edwards25519sha512batch.h \
@@ -235,6 +237,7 @@ CFLAGS = @CFLAGS@
 CFLAGS_AESNI = @CFLAGS_AESNI@
 CFLAGS_AVX = @CFLAGS_AVX@
 CFLAGS_AVX2 = @CFLAGS_AVX2@
+CFLAGS_AVX512F = @CFLAGS_AVX512F@
 CFLAGS_MMX = @CFLAGS_MMX@
 CFLAGS_PCLMUL = @CFLAGS_PCLMUL@
 CFLAGS_SSE2 = @CFLAGS_SSE2@
@@ -396,6 +399,7 @@ SODIUM_EXPORT = sodium.h sodium/core.h sodium/crypto_aead_aes256gcm.h \
 	sodium/crypto_secretbox.h \
 	sodium/crypto_secretbox_xchacha20poly1305.h \
 	sodium/crypto_secretbox_xsalsa20poly1305.h \
+	sodium/crypto_secretstream_xchacha20poly1305.h \
 	sodium/crypto_shorthash.h sodium/crypto_shorthash_siphash24.h \
 	sodium/crypto_sign.h sodium/crypto_sign_ed25519.h \
 	sodium/crypto_sign_edwards25519sha512batch.h \

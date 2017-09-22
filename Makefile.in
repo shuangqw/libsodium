@@ -90,7 +90,8 @@ build_triplet = @build@
 host_triplet = @host@
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/ax_check_catchable_segv.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/ax_check_catchable_abrt.m4 \
+	$(top_srcdir)/m4/ax_check_catchable_segv.m4 \
 	$(top_srcdir)/m4/ax_check_compile_flag.m4 \
 	$(top_srcdir)/m4/ax_check_define.m4 \
 	$(top_srcdir)/m4/ax_check_link_flag.m4 \
@@ -206,9 +207,7 @@ am__DIST_COMMON = $(srcdir)/Makefile.in \
 	$(top_srcdir)/src/libsodium/include/sodium/version.h.in \
 	AUTHORS ChangeLog THANKS build-aux/compile \
 	build-aux/config.guess build-aux/config.sub \
-	build-aux/install-sh build-aux/ltmain.sh build-aux/missing \
-	compile config.guess config.sub depcomp install-sh ltmain.sh \
-	missing
+	build-aux/install-sh build-aux/ltmain.sh build-aux/missing
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -269,6 +268,7 @@ CFLAGS = @CFLAGS@
 CFLAGS_AESNI = @CFLAGS_AESNI@
 CFLAGS_AVX = @CFLAGS_AVX@
 CFLAGS_AVX2 = @CFLAGS_AVX2@
+CFLAGS_AVX512F = @CFLAGS_AVX512F@
 CFLAGS_MMX = @CFLAGS_MMX@
 CFLAGS_PCLMUL = @CFLAGS_PCLMUL@
 CFLAGS_SSE2 = @CFLAGS_SSE2@
@@ -418,6 +418,7 @@ EXTRA_DIST = \
 	THANKS
 
 SUBDIRS = \
+	builds \
 	contrib \
 	dist-build \
 	msvc-scripts \

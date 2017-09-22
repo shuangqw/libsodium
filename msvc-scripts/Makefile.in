@@ -89,7 +89,8 @@ build_triplet = @build@
 host_triplet = @host@
 subdir = msvc-scripts
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/ax_check_catchable_segv.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/ax_check_catchable_abrt.m4 \
+	$(top_srcdir)/m4/ax_check_catchable_segv.m4 \
 	$(top_srcdir)/m4/ax_check_compile_flag.m4 \
 	$(top_srcdir)/m4/ax_check_define.m4 \
 	$(top_srcdir)/m4/ax_check_link_flag.m4 \
@@ -145,6 +146,7 @@ CFLAGS = @CFLAGS@
 CFLAGS_AESNI = @CFLAGS_AESNI@
 CFLAGS_AVX = @CFLAGS_AVX@
 CFLAGS_AVX2 = @CFLAGS_AVX2@
+CFLAGS_AVX512F = @CFLAGS_AVX512F@
 CFLAGS_MMX = @CFLAGS_MMX@
 CFLAGS_PCLMUL = @CFLAGS_PCLMUL@
 CFLAGS_SSE2 = @CFLAGS_SSE2@
